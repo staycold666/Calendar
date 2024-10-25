@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Calendar</title>
+    <style>
+        body {
+            background-color: #008080; /* Classic teal */
+            font-family: "MS Sans Serif", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #000;
+        }
+
+        .calendar-container {
+            background-color: #c0c0c0;
+            border: 2px solid #ffffff;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            padding: 4px;
+            max-width: 800px;
+            margin: 20px auto;
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.2);
+        }
+
+        .title-bar {
+            background: linear-gradient(90deg, #000080, #1084d0);
+            color: white;
+            padding: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background-color: #c0c0c0;
+            border-bottom: 2px solid #808080;
+        }
+
+        .retro-button {
+            background-color: #c0c0c0;
+            border: 2px solid #ffffff;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+        }
+
+        .retro-button:active {
+            border-color: #808080;
+            border-right-color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+
+        .calendar {
+            border-collapse: collapse;
+            width: 100%;
+            background-color: #ffffff;
+        }
+
+        .calendar th {
+            background-color: #808080;
+            color: #ffffff;
+            padding: 5px;
+            font-size: 12px;
+        }
+
+        .calendar td {
+            border: 1px solid #c0c0c0;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .calendar td:hover {
+            background-color: #000080;
+            color: #ffffff;
+        }
+
+        .current-day {
+            background-color: #000080;
+            color: #ffffff;
+        }
+
+        .other-month {
+            color: #808080;
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <div class="title-bar">
+            <span>Retro Calendar.exe</span>
+        </div>
+        <div class="controls">
+            <button class="retro-button" id="prevMonth">◄</button>
+            <span id="currentMonth"></span>
+            <button class="retro-button" id="nextMonth">►</button>
+        </div>
+        <table class="calendar">
+            <thead>
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody id="calendarBody">
+            </tbody>
+        </table>
+    </div>
+    <script>
+        class Calendar {
+            constructor() {
+                this.date = new Date();
+                this.currentMonth = this.date.getMonth();
+                this.currentYear = this.date.getFullYear();
+                this.monthNames = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"];
+                
+                this.initializeCalendar();
+                this.addEventListeners();
+            }
+
+            initializeCalendar() {
+                this.updateMonthDisplay();
+                this.renderCalendar();
+            }
+
+            addEventListeners() {
+                document.getElementById('prevMonth').addEventListener('click', () => {
+                    this.currentMonth--;
+                    if (this.currentMonth < 0) {
+                        this.currentMonth = 11;
+                        this.currentYear--;
+                    }
+                    this.updateMonthDisplay();
+                    this.renderCalendar();
+                });
+
+                document.getElementById('nextMonth').addEventListener('click', () => {
+                    this.currentMonth++;
+                    if (this.currentMonth > 11) {
+                        this.currentMonth = 0;
+                        this.currentYear++;
+                    }
+                    this.updateMonthDisplay();
+                    this.renderCalendar();
+                });
+            }
+
+            updateMonthDisplay() {
+                document.getElementById('currentMonth').textContent = 
+                    `${this.monthNames[this.currentMonth]} ${this.currentYear}`;
+            }
+
+            renderCalendar() {
+                const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+                const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
+                const startingDay = firstDay.getDay();
+                const totalDays = lastDay.getDate();
+                
+                let calendarBody = document.getElementById('calendarBody');
+                calendarBody.innerHTML = '';
+                
+                let date = 1;
+                for (let i = 0; i < 6; i++) {
+                    let row = document.createElement('tr');
+                    
+                    for (let j = 0; j < 7; j++) {
+                        let cell = document.createElement('td');
+                        
+                        if (i === 0 && j < startingDay) {
+                            // Previous month days
+                            const prevMonthLastDay = new Date(this.currentYear, this.currentMonth, 0).getDate();
+                            cell.textContent = prevMonthLastDay - (startingDay - j - 1);
+                            cell.classList.add('other-month');
+                        } else if (date > totalDays) {
+                            // Next month days
+                            cell.textContent = date - totalDays;
+                            cell.classList.add('other-month');
+                            date++;
+                        } else if (date <= totalDays) {
+                            // Current month days
+                            cell.textContent = date;
+                            if (date === new Date().getDate() && 
+                                this.currentMonth === new Date().getMonth() &&
+                                this.currentYear === new Date().getFullYear()) {
+                                cell.classList.add('current-day');
+                            }
+                            date++;
+                        }
+                        
+                        row.appendChild(cell);
+                    }
+                    
+                    calendarBody.appendChild(row);
+                    if (date > totalDays && i < 5) break;
+                }
+            }
+        }
+
+        // Initialize the calendar when the page loads
+        window.addEventListener('load', () => {
+            new Calendar();
+        });
+    </script>
+</body>
+</html>
